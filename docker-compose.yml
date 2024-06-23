@@ -1,0 +1,29 @@
+version: '3.1'
+
+services:
+
+    db:
+        image: postgres
+        restart: always
+        environment:
+            POSTGRES_PASSWORD: mysecretpassword
+        ports:
+            - "5432:5432"
+
+    app:
+        build:
+            context: .
+            dockerfile: Dockerfile
+        ports:
+            - "8000:8000"
+        volumes:
+            - .:/var/www/html
+        depends_on:
+            - db
+        environment:
+            DB_CONNECTION: pgsql
+            DB_HOST: db
+            DB_PORT: 5432
+            DB_DATABASE: postgres
+            DB_USERNAME: postgres
+            DB_PASSWORD: mysecretpassword
