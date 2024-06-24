@@ -603,3 +603,112 @@ ul {
 .grand__total--items span {
     font-size: 26px;
 }
+
+.invoices {
+    margin: 20px;
+    padding: 20px;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    background-color: #fff;
+}
+
+.card__header,
+.card__footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    background-color: #f5f5f5;
+    border-bottom: 1px solid #ddd;
+}
+
+.card__header {
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
+}
+
+.card__footer {
+    border-bottom-left-radius: 10px;
+    border-bottom-right-radius: 10px;
+}
+
+.invoice__title {
+    font-size: 24px;
+    font-weight: bold;
+}
+
+.card__content {
+    padding: 20px;
+}
+
+.card__content--header {
+    display: flex;
+    justify-content: space-between;
+}
+
+.card__content--header > div {
+    flex: 1;
+    margin: 0 10px;
+}
+
+.input {
+    width: 100%;
+    padding: 10px;
+    margin-top: 5px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+}
+
+.table {
+    margin-top: 20px;
+}
+
+.table--heading2 {
+    display: flex;
+    justify-content: space-between;
+    font-weight: bold;
+    border-bottom: 1px solid #ddd;
+    padding-bottom: 10px;
+}
+
+.table--items2 {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 0;
+    border-bottom: 1px solid #f5f5f5;
+}
+
+.table--items2 > p,
+.table--items2 > input {
+    flex: 1;
+    margin: 0 10px;
+}
+
+.add-line {
+    padding: 10px 30px;
+}
+
+.document-footer {
+    margin-top: 20px;
+}
+
+.table__footer {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 20px;
+}
+
+.table__footer--subtotal,
+.table__footer--discount,
+.table__footer--total {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 0;
+}
+
+.remove-item {
+    color: red;
+    font-size: 24px;
+    cursor: pointer;
+    flex: 0;
+}

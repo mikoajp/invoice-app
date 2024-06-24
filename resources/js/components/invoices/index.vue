@@ -1,8 +1,11 @@
 <script setup>
 import { onMounted, ref } from 'vue'
+import { useRouter } from "vue-router"
 
-const invoices = ref([])
+const router = useRouter()
 
+let invoices = ref([])
+let searchInvoice = ref([])
 onMounted(async () => {
     await getInvoices()
 })
@@ -11,7 +14,8 @@ const getInvoices = async () => {
     try {
         let response = await axios.get('/api/get_all_invoices', {
             headers: {
-                'Accept': 'application/json'
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
             }
         })
         console.log('response', response)
@@ -20,6 +24,24 @@ const getInvoices = async () => {
         console.error('Error fetching invoices:', error)
     }
 }
+const search = async function () {
+    let response = await axios.get('/api/search?s='+searchInvoice.value, {
+        headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+        }
+    })
+    invoices.value = response.data;
+}
+
+const newInvoice = async () => {
+    try {
+        await axios.get('/api/create_invoice');
+        await router.push('/invoice/new');
+    } catch (error) {
+        console.error('Error creating new invoice:', error);
+    }
+};
 </script>
 
 <template>
@@ -30,7 +52,7 @@ const getInvoices = async () => {
                     <h2 class="invoice__title">Invoices</h2>
                 </div>
                 <div>
-                    <a class="btn btn-secondary">
+                    <a class="btn btn-secondary" @click="newInvoice">
                         New Invoice
                     </a>
                 </div>
@@ -63,7 +85,8 @@ const getInvoices = async () => {
                     </div>
                     <div class="relative">
                         <i class="table--search--input--icon fas fa-search"></i>
-                        <input class="table--search--input" type="text" placeholder="Search invoice">
+                        <input class="table--search--input" type="text" placeholder="Search invoice"
+                        v-model="searchInvoice" @keyup="search()">
                     </div>
                 </div>
                 <div class="table--heading">
@@ -78,7 +101,8 @@ const getInvoices = async () => {
                     <a href="#" class="table--items--transactionId">#{{ item.id }}</a>
                     <p>{{ item.date }}</p>
                     <p>{{ item.number }}</p>
-                    <p>{{ item.customer_id }}</p>
+                    <p v-if="item.customer">{{ item.customer.firstname }}</p>
+                    <p v-else>{{ item.customer_id }}</p>
                     <p>{{ item.due_date }}</p>
                     <p>${{ item.total }}</p>
                 </div>
