@@ -20,4 +20,4 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
     return $request->user();
 });
 
-Route::get('/get_all_invoices', [InvoiceController::class, 'get_all_invoices']);
+Route::get('/get_all_invoices', [InvoiceController::class, 'getInvoices']);

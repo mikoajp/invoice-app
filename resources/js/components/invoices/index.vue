@@ -15,7 +15,7 @@ const getInvoices = async () => {
             }
         })
         console.log('response', response)
-        invoices.value = response.data.invoices
+        invoices.value = response.data;
     } catch (error) {
         console.error('Error fetching invoices:', error)
     }
@@ -74,14 +74,13 @@ const getInvoices = async () => {
                     <p>Due Date</p>
                     <p>Total</p>
                 </div>
-                <div class="table--items" v-if="invoices.length === 0">
-                    <p>Invoice not Found</p>
-                </div>
-                <div class="table--items" v-for="item in invoices" :key="item.id" v-else>
+                <div class="table--items" v-for="item in invoices" :key="item.id">
                     <a href="#" class="table--items--transactionId">#{{ item.id }}</a>
                     <p>{{ item.date }}</p>
-                    <p>#{{ item.number }}</p>
-                    <p> $ {{ item.total }}</p>
+                    <p>{{ item.number }}</p>
+                    <p>{{ item.customer_id }}</p>
+                    <p>{{ item.due_date }}</p>
+                    <p>${{ item.total }}</p>
                 </div>
             </div>
         </div>

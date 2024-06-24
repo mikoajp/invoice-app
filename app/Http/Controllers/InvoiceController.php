@@ -7,7 +7,7 @@ use Illuminate\Http\JsonResponse;
 
 class InvoiceController extends Controller
 {
-    public function get_all_invoices(): JsonResponse
+    public function getInvoices(): JsonResponse
     {
         $invoices = Invoice::all();
         return response()->json($invoices);
