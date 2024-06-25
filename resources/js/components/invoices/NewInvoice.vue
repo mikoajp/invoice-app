@@ -1,149 +1,175 @@
+<script setup>
+import {computed, onMounted, ref} from "vue"
+import axios from 'axios'
+
+let form = ref({})
+let allCustomers = ref([])
+let allProducts = ref([])
+let customer_id = ref(null)
+let listProduct = ref([])
+let invoice = ref({
+    items: [],
+    terms: '',
+    discount: 0
+})
+const showModal = ref(false)
+
+onMounted(async () => {
+    await indexForm()
+    await getAllCustomers()
+    await getAllProducts()
+})
+
+const indexForm = async () => {
+    let response = await axios.get('/api/create_invoice')
+    form.value = response.data
+}
+
+const getAllCustomers = async () => {
+    let response = await axios.get('/api/get_customers')
+    allCustomers.value = response.data
+}
+
+const getAllProducts = async () => {
+    let response = await axios.get('/api/get_products')
+    allProducts.value = response.data
+    listProduct.value = response.data
+}
+
+const openModal = () => {
+    showModal.value = true
+}
+
+const closeModal = () => {
+    showModal.value = false
+}
+
+const addCart = (item) => {
+    const itemCart = {
+        id: item.id,
+        item_code: item.item_code,
+        description: item.description,
+        unit_price: item.unit_price,
+        quantity: 1
+    }
+    invoice.value.items.push(itemCart)
+}
+
+const removeItem = (index) => {
+    invoice.value.items.splice(index, 1)
+}
+
+const formatCurrency = (value) => {
+    return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(value)
+}
+
+const subTotal = computed(() => {
+    return invoice.value.items.reduce((acc, item) => acc + item.unit_price * item.quantity, 0)
+})
+
+const grandTotal = computed(() => {
+    return subTotal.value - invoice.value.discount
+})
+</script>
+
 <template>
-    <div class="invoices">
-        <div class="card__header">
-            <div>
-                <h2 class="invoice__title">New Invoice</h2>
-            </div>
-            <div></div>
+    <div class="invoice-container">
+        <div class="invoice-header">
+            <h2 class="invoice-title">New Invoice</h2>
         </div>
 
-        <div class="card__content">
-            <div class="card__content--header">
-                <div>
-                    <p class="my-1">Customer</p>
-                    <select v-model="invoice.customer" class="input">
+        <div class="invoice-content">
+            <div class="invoice-details">
+                <div class="invoice-detail">
+                    <label for="customer">Customer</label>
+                    <select v-model="customer_id" id="customer" class="input">
                         <option value="">Select Customer</option>
-                        <option value="cust1">Customer 1</option>
-                        <!-- Dodaj więcej opcji tutaj -->
+                        <option v-for="customer in allCustomers" :key="customer.id" :value="customer.id">
+                            {{ customer.firstname }}
+                        </option>
                     </select>
                 </div>
-                <div>
-                    <p class="my-1">Date</p>
-                    <input v-model="invoice.date" id="date" placeholder="dd-mm-yyyy" type="date" class="input" />
-                    <p class="my-1">Due Date</p>
-                    <input v-model="invoice.due_date" id="due_date" type="date" class="input" />
+                <div class="invoice-detail">
+                    <label for="date">Date</label>
+                    <input v-model="form.date" id="date" type="date" class="input" />
+                    <label for="due_date">Due Date</label>
+                    <input v-model="form.due_date" id="due_date" type="date" class="input" />
                 </div>
-                <div>
-                    <p class="my-1">Numero</p>
-                    <input v-model="invoice.numero" type="text" class="input" />
-                    <p class="my-1">Reference (Optional)</p>
-                    <input v-model="invoice.reference" type="text" class="input" />
+                <div class="invoice-detail">
+                    <label for="numero">Numero</label>
+                    <input v-model="form.number" id="numero" type="text" class="input" />
+                    <label for="reference">Reference (Optional)</label>
+                    <input v-model="form.reference" id="reference" type="text" class="input" />
                 </div>
             </div>
-            <br /><br />
-            <div class="table">
-                <div class="table--heading2">
-                    <p>Item Description</p>
+
+            <div class="invoice-items">
+                <div class="invoice-items-header">
+                    <p>Description</p>
                     <p>Unit Price</p>
-                    <p>Qty</p>
+                    <p>Quantity</p>
                     <p>Total</p>
                     <p></p>
                 </div>
 
-                <!-- dynamiczne pozycje faktury -->
-                <div v-for="(item, index) in invoice.items" :key="index" class="table--items2">
-                    <p>{{ item.description }}</p>
-                    <p>
-                        <input v-model="item.unit_price" type="number" class="input" />
-                    </p>
-                    <p>
-                        <input v-model="item.qty" type="number" class="input" />
-                    </p>
-                    <p>
-                        {{ formatCurrency(item.unit_price * item.qty) }}
-                    </p>
-                    <p @click="removeItem(index)" class="remove-item">
-                        &times;
-                    </p>
+                <div v-for="(item, index) in invoice.items" :key="index" class="invoice-item">
+                    <input v-model="item.description" type="text" class="input description-input" placeholder="Item Description" />
+                    <input v-model="item.unit_price" type="number" class="input price-input" placeholder="Unit Price" />
+                    <input v-model="item.quantity" type="number" class="input qty-input" placeholder="quantity" />
+                    <p class="item-total">{{ formatCurrency(item.unit_price * item.quantity) }}</p>
+                    <button @click="removeItem(index)" class="remove-item-button">&times;</button>
                 </div>
-                <div class="add-line">
-                    <button @click="addItem" class="btn btn-sm btn__open--modal">Add New Line</button>
-                </div>
+
+                <button @click="openModal" class="btn add-line-button">Add New Line</button>
             </div>
 
-            <div class="table__footer">
-                <div class="document-footer">
-                    <p>Terms and Conditions</p>
-                    <textarea v-model="invoice.terms" cols="50" rows="7" class="textarea"></textarea>
+            <div class="invoice-footer">
+                <div class="invoice-terms">
+                    <label for="terms">Terms and Conditions</label>
+                    <textarea v-model="invoice.terms" id="terms" class="textarea" rows="5"></textarea>
                 </div>
-                <div>
-                    <div class="table__footer--subtotal">
+                <div class="invoice-summary">
+                    <div class="summary-item">
                         <p>Sub Total</p>
                         <span>{{ formatCurrency(subTotal) }}</span>
                     </div>
-                    <div class="table__footer--discount">
-                        <p>Discount</p>
-                        <input v-model="invoice.discount" type="number" class="input" />
+                    <div class="summary-item">
+                        <label for="discount">Discount</label>
+                        <input v-model="invoice.discount" id="discount" type="number" class="input discount-input" />
                     </div>
-                    <div class="table__footer--total">
+                    <div class="summary-item">
                         <p>Grand Total</p>
                         <span>{{ formatCurrency(grandTotal) }}</span>
                     </div>
                 </div>
             </div>
-        </div>
 
-        <div class="card__footer">
-            <div></div>
-            <div>
-                <button @click="saveInvoice" class="btn btn-secondary">Save</button>
+            <div class="invoice-actions">
+                <button class="btn save-button">Save</button>
             </div>
         </div>
     </div>
+
+    <div class="modal main__modal" :class="{ show: showModal }">
+        <div class="modal__content">
+            <span @click="closeModal" class="modal__close btn__close--modal">×</span>
+            <h3 class="modal__title">Add Item</h3>
+            <hr><br>
+            <div class="modal__items">
+                <ul>
+                    <li v-for="(item, i) in listProduct" :key="item.id" class="modal__item">
+                        <p>{{ i + 1 }}</p>
+                        <a href="#">{{ item.item_code }} {{ item.description }}</a>
+                        <button @click="addCart(item)" class="modal__add-button">+</button>
+                    </li>
+                </ul>
+            </div>
+            <br><hr>
+            <div class="modal__footer">
+                <button @click="closeModal" class="btn btn-light mr-2 btn__close--modal">Cancel</button>
+                <button class="btn btn-light btn__close--modal">Save</button>
+            </div>
+        </div>
+    </div>
+
 </template>
-
-<script>
-export default {
-    data() {
-        return {
-            invoice: {
-                customer: '',
-                date: '',
-                due_date: '',
-                numero: '',
-                reference: '',
-                items: [
-                    {
-                        description: '',
-                        unit_price: 0,
-                        qty: 0
-                    }
-                ],
-                terms: '',
-                discount: 0
-            }
-        };
-    },
-    computed: {
-        subTotal() {
-            return this.invoice.items.reduce((sum, item) => sum + item.unit_price * item.qty, 0);
-        },
-        grandTotal() {
-            return this.subTotal - this.invoice.discount;
-        }
-    },
-    methods: {
-        addItem() {
-            this.invoice.items.push({
-                description: '',
-                unit_price: 0,
-                qty: 0
-            });
-        },
-        removeItem(index) {
-            this.invoice.items.splice(index, 1);
-        },
-        formatCurrency(amount) {
-            return `$ ${amount.toFixed(2)}`;
-        },
-        saveInvoice() {
-            // Implementuj logikę zapisu faktury, np. wysyłanie danych na serwer
-            console.log('Saving invoice:', this.invoice);
-        }
-    }
-};
-</script>
-
-<style scoped>
-
-</style>
