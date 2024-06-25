@@ -96,7 +96,7 @@ const grandTotal = computed(() => {
                     <input v-model="form.due_date" id="due_date" type="date" class="input" />
                 </div>
                 <div class="invoice-detail">
-                    <label for="numero">Numero</label>
+                    <label for="numero">Number</label>
                     <input v-model="form.number" id="numero" type="text" class="input" />
                     <label for="reference">Reference (Optional)</label>
                     <input v-model="form.reference" id="reference" type="text" class="input" />
