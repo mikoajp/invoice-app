@@ -1,108 +1,31 @@
-<script setup>
-import {computed, onMounted, ref} from "vue"
-import axios from 'axios'
-
-let form = ref({})
-let allCustomers = ref([])
-let allProducts = ref([])
-let customer_id = ref(null)
-let listProduct = ref([])
-let invoice = ref({
-    items: [],
-    terms: '',
-    discount: 0
-})
-const showModal = ref(false)
-
-onMounted(async () => {
-    await indexForm()
-    await getAllCustomers()
-    await getAllProducts()
-})
-
-const indexForm = async () => {
-    let response = await axios.get('/api/create_invoice')
-    form.value = response.data
-}
-
-const getAllCustomers = async () => {
-    let response = await axios.get('/api/get_customers')
-    allCustomers.value = response.data
-}
-
-const getAllProducts = async () => {
-    let response = await axios.get('/api/get_products')
-    allProducts.value = response.data
-    listProduct.value = response.data
-}
-
-const openModal = () => {
-    showModal.value = true
-}
-
-const closeModal = () => {
-    showModal.value = false
-}
-
-const addCart = (item) => {
-    const itemCart = {
-        id: item.id,
-        item_code: item.item_code,
-        description: item.description,
-        unit_price: item.unit_price,
-        quantity: 1
-    }
-    invoice.value.items.push(itemCart)
-}
-
-const removeItem = (index) => {
-    invoice.value.items.splice(index, 1)
-}
-
-const formatCurrency = (value) => {
-    return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(value)
-}
-
-const subTotal = computed(() => {
-    return invoice.value.items.reduce((acc, item) => acc + item.unit_price * item.quantity, 0)
-})
-
-const grandTotal = computed(() => {
-    return subTotal.value - invoice.value.discount
-})
-</script>
-
 <template>
-    <div class="invoice-container">
-        <div class="invoice-header">
-            <h2 class="invoice-title">New Invoice</h2>
-        </div>
-
-        <div class="invoice-content">
-            <div class="invoice-details">
-                <div class="invoice-detail">
-                    <label for="customer">Customer</label>
-                    <select v-model="customer_id" id="customer" class="input">
-                        <option value="">Select Customer</option>
-                        <option v-for="customer in allCustomers" :key="customer.id" :value="customer.id">
-                            {{ customer.firstname }}
-                        </option>
-                    </select>
-                </div>
-                <div class="invoice-detail">
-                    <label for="date">Date</label>
-                    <input v-model="form.date" id="date" type="date" class="input" />
-                    <label for="due_date">Due Date</label>
-                    <input v-model="form.due_date" id="due_date" type="date" class="input" />
-                </div>
-                <div class="invoice-detail">
-                    <label for="numero">Number</label>
-                    <input v-model="form.number" id="numero" type="text" class="input" />
-                    <label for="reference">Reference (Optional)</label>
-                    <input v-model="form.reference" id="reference" type="text" class="input" />
-                </div>
+    <div class="form-container">
+        <form @submit.prevent="submitForm">
+            <div class="form-group">
+                <label>Number:</label>
+                <input type="text" v-model="invoice.number" required />
             </div>
-
+            <div class="form-group">
+                <label>Customer:</label>
+                <select v-model="invoice.customer_id" id="customer" class="input">
+                    <option value="">Select Customer</option>
+                    <option v-for="customer in allCustomers" :key="customer.id" :value="customer.id">
+                        {{ customer.firstname }}
+                    </option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Date:</label>
+                <input type="date" v-model="invoice.date" required />
+            </div>
+            <div class="form-group">
+                <label>Due Date:</label>
+                <input type="date" v-model="invoice.due_date" required />
+            </div>
+            <div class="form-group">
+                <label>Reference:</label>
+                <input type="text" v-model="invoice.reference" />
+            </div>
             <div class="invoice-items">
                 <div class="invoice-items-header">
                     <p>Description</p>
@@ -112,64 +35,209 @@ const grandTotal = computed(() => {
                     <p></p>
                 </div>
 
-                <div v-for="(item, index) in invoice.items" :key="index" class="invoice-item">
+                <div v-for="(item, index) in invoiceAr.items" :key="index" class="invoice-item">
                     <input v-model="item.description" type="text" class="input description-input" placeholder="Item Description" />
                     <input v-model="item.unit_price" type="number" class="input price-input" placeholder="Unit Price" />
-                    <input v-model="item.quantity" type="number" class="input qty-input" placeholder="quantity" />
+                    <input v-model="item.quantity" type="number" class="input qty-input" placeholder="Quantity" />
                     <p class="item-total">{{ formatCurrency(item.unit_price * item.quantity) }}</p>
                     <button @click="removeItem(index)" class="remove-item-button">&times;</button>
                 </div>
 
-                <button @click="openModal" class="btn add-line-button">Add New Line</button>
+                <button @click="openModal" type="button" class="btn add-line-button">Add New Line</button>
             </div>
 
-            <div class="invoice-footer">
-                <div class="invoice-terms">
-                    <label for="terms">Terms and Conditions</label>
-                    <textarea v-model="invoice.terms" id="terms" class="textarea" rows="5"></textarea>
-                </div>
-                <div class="invoice-summary">
-                    <div class="summary-item">
-                        <p>Sub Total</p>
-                        <span>{{ formatCurrency(subTotal) }}</span>
-                    </div>
-                    <div class="summary-item">
-                        <label for="discount">Discount</label>
-                        <input v-model="invoice.discount" id="discount" type="number" class="input discount-input" />
-                    </div>
-                    <div class="summary-item">
-                        <p>Grand Total</p>
-                        <span>{{ formatCurrency(grandTotal) }}</span>
-                    </div>
-                </div>
+            <div class="form-group">
+                <label>Terms and Conditions:</label>
+                <textarea v-model="invoice.terms_and_conditions" required></textarea>
             </div>
+            <div class="form-group">
+                <label>Sub Total:</label>
+                <input type="number" :value="calculateSubTotal" />
+            </div>
+            <div class="form-group">
+                <label>Discount:</label>
+                <input type="number" v-model="invoice.discount" />
+            </div>
+            <div class="form-group">
+                <label>Total:</label>
+                <input type="number" :value="calculateTotal" />
+            </div>
+            <button type="submit">Save</button>
 
-            <div class="invoice-actions">
-                <button class="btn save-button">Save</button>
+        </form>
+
+
+        <div class="modal main__modal" :class="{ show: showModal }">
+            <div class="modal__content">
+                <span @click="closeModal" class="modal__close btn__close--modal">×</span>
+                <h3 class="modal__title">Add Item</h3>
+                <hr><br>
+                <div class="modal__items">
+                    <ul>
+                        <li v-for="(item, i) in listProduct" :key="item.id" class="modal__item">
+                            <p>{{ i + 1 }}</p>
+                            <a href="#">{{ item.item_code }} {{ item.description }}</a>
+                            <button @click="addCart(item)" class="modal__add-button">+</button>
+                        </li>
+                    </ul>
+                </div>
+                <br><hr>
+                <div class="modal__footer">
+                    <button @click="closeModal" class="btn btn-light mr-2 btn__close--modal">Cancel</button>
+                    <button @click="saveModalItems" class="btn btn-light btn__close--modal">Save</button>
+                </div>
             </div>
         </div>
     </div>
-
-    <div class="modal main__modal" :class="{ show: showModal }">
-        <div class="modal__content">
-            <span @click="closeModal" class="modal__close btn__close--modal">×</span>
-            <h3 class="modal__title">Add Item</h3>
-            <hr><br>
-            <div class="modal__items">
-                <ul>
-                    <li v-for="(item, i) in listProduct" :key="item.id" class="modal__item">
-                        <p>{{ i + 1 }}</p>
-                        <a href="#">{{ item.item_code }} {{ item.description }}</a>
-                        <button @click="addCart(item)" class="modal__add-button">+</button>
-                    </li>
-                </ul>
-            </div>
-            <br><hr>
-            <div class="modal__footer">
-                <button @click="closeModal" class="btn btn-light mr-2 btn__close--modal">Cancel</button>
-                <button class="btn btn-light btn__close--modal">Save</button>
-            </div>
-        </div>
-    </div>
-
 </template>
+
+<script setup>
+import { computed, reactive, ref, watch } from 'vue';
+import axios from 'axios';
+
+const listProduct = ref([]);
+const allCustomers = ref([]);
+const allProducts = ref([]);
+const showModal = ref(false);
+let invoiceAr = ref({
+    items: []
+});
+const openModal = () => {
+    showModal.value = true;
+};
+const getAllProducts = async () => {
+    const response = await axios.get('/api/get_products');
+    allProducts.value = response.data;
+    listProduct.value = response.data;
+};
+
+const closeModal = () => {
+    showModal.value = false;
+};
+
+const removeItem = (index) => {
+    invoiceAr.value.items.splice(index, 1);
+}
+
+const addCart = (item) => {
+    const itemCart = {
+        product_id: item.id,
+        item_code: item.item_code,
+        description: item.description,
+        unit_price: item.unit_price,
+        quantity: 1
+    }
+    invoiceAr.value.items.push(itemCart)
+    closeModal();
+}
+
+const formatCurrency = (value) => {
+    return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(value);
+}
+
+const invoice = reactive({
+    number: '',
+    customer_id: '',
+    date: '',
+    due_date: '',
+    reference: '',
+    terms_and_conditions: '',
+    sub_total: 0,
+    discount: 0,
+    total: 0,
+});
+
+const calculateSubTotal = computed(() => {
+    return invoiceAr.value.items.reduce((acc, item) => acc + (item.unit_price * item.quantity), 0);
+});
+
+const calculateTotal = computed(() => {
+    return calculateSubTotal.value - invoice.discount;
+});
+
+watch(calculateSubTotal, (newVal) => {
+    invoice.sub_total = newVal;
+});
+
+watch(calculateTotal, (newVal) => {
+    invoice.total = newVal;
+});
+
+function submitForm() {
+    console.log("Submitting invoice:", invoice);
+    axios.post('/api/invoices', invoice)
+        .then(response => {
+            console.log('Invoice saved:', response.data);
+        })
+        .catch(error => {
+            console.error('There was an error!', error);
+        });
+}
+
+const getAllCustomers = async () => {
+    const response = await axios.get('/api/get_customers');
+    allCustomers.value = response.data;
+};
+
+const init = async () => {
+    try {
+        await getAllCustomers();
+        await getAllProducts();
+    } catch (error) {
+        console.error('Error loading data:', error);
+        alert('Failed to load initial data.');
+    }
+};
+
+init();
+</script>
+
+
+
+<style scoped>
+.form-container {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 20px;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    background-color: #f9f9f9;
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+
+.form-group input,
+.form-group textarea {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    box-sizing: border-box;
+}
+
+.form-group textarea {
+    resize: vertical;
+}
+
+button {
+    display: inline-block;
+    padding: 10px 20px;
+    color: #fff;
+    background-color: #007bff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+button:hover {
+    background-color: #0056b3;
+}
+</style>
