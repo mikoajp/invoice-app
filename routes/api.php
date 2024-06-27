@@ -26,6 +26,4 @@ Route::get('/get_all_invoices', [InvoiceController::class, 'getInvoices']);
 Route::get('/search', [InvoiceController::class, 'searchBar']);
 Route::get('/get_customers', [CustomerController::class, 'getCustomers']);
 Route::get('/get_products', [ProductController::class, 'getProducts']);
-Route::post('/create_invoice', [InvoiceController::class, 'createInvoice']);
-Route::post('/invoices/save', [InvoiceController::class, 'saveInvoice']);
 Route::post('/invoices', [InvoiceController::class, 'store']);

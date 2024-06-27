@@ -634,6 +634,17 @@ button:hover {
     visibility: hidden;
     transition: opacity 0.3s ease, visibility 0.3s ease;
 }
+.table--filter--link {
+    padding: 10px 15px;
+    cursor: pointer;
+    color: #3498db;
+}
+
+.table--filter--link--active {
+    background-color: #3498db;
+    color: #fff;
+    border-radius: 4px;
+}
 
 .main__modal.show {
     opacity: 1;
@@ -714,6 +725,7 @@ button:hover {
     background: #ecf0f1;
     color: #333;
 }
+
 
 .btn-light:hover {
     background: #bdc3c7;
