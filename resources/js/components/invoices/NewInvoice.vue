@@ -3,7 +3,8 @@
         <form @submit.prevent="submitForm">
             <div class="form-group">
                 <label>Number:</label>
-                <input type="text" v-model="invoice.number" required />
+                <input type="text" v-model="invoice.number" required @input="validateInvoiceNumber" />
+                <p v-if="!isInvoiceNumberValid" class="error-message">Number must be in the format INV-</p>
             </div>
             <div class="form-group">
                 <label>Customer:</label>
@@ -24,7 +25,8 @@
             </div>
             <div class="form-group">
                 <label>Reference:</label>
-                <input type="text" v-model="invoice.reference" />
+                <input type="text" v-model="invoice.reference" @input="validateReference" />
+                <p v-if="!isReferenceValid" class="error-message">Reference must be in the format REF-</p>
             </div>
             <div class="invoice-items">
                 <div class="invoice-items-header">
@@ -52,7 +54,7 @@
             </div>
             <div class="form-group">
                 <label>Sub Total:</label>
-                <input type="number" :value="calculateSubTotal" />
+                <input type="number" :value="calculateSubTotal" readonly />
             </div>
             <div class="form-group">
                 <label>Discount:</label>
@@ -60,12 +62,10 @@
             </div>
             <div class="form-group">
                 <label>Total:</label>
-                <input type="number" :value="calculateTotal" />
+                <input type="number" :value="calculateTotal" readonly />
             </div>
-            <button type="submit">Save</button>
-
+            <button type="submit" :disabled="!isInvoiceNumberValid || !isReferenceValid">Save</button>
         </form>
-
 
         <div class="modal main__modal" :class="{ show: showModal }">
             <div class="modal__content">
@@ -76,15 +76,14 @@
                     <ul>
                         <li v-for="(item, i) in listProduct" :key="item.id" class="modal__item">
                             <p>{{ i + 1 }}</p>
-                            <a href="#">{{ item.item_code }} {{ item.description }}</a>
+                            <a>{{ item.item_code }} {{ item.description }}</a>
                             <button @click="addCart(item)" class="modal__add-button">+</button>
                         </li>
                     </ul>
                 </div>
                 <br><hr>
                 <div class="modal__footer">
-                    <button @click="closeModal" class="btn btn-light mr-2 btn__close--modal">Cancel</button>
-                    <button @click="saveModalItems" class="btn btn-light btn__close--modal">Save</button>
+                    <button @click="closeModal" class="btn btn-light btn__close--modal">Save</button>
                 </div>
             </div>
         </div>
@@ -147,6 +146,19 @@ const invoice = reactive({
     total: 0,
 });
 
+const isInvoiceNumberValid = ref(true);
+const isReferenceValid = ref(true);
+
+const validateInvoiceNumber = () => {
+    const regex = /^INV-/;
+    isInvoiceNumberValid.value = regex.test(invoice.number);
+};
+
+const validateReference = () => {
+    const regex = /^REF-/;
+    isReferenceValid.value = regex.test(invoice.reference);
+};
+
 const calculateSubTotal = computed(() => {
     return invoiceAr.value.items.reduce((acc, item) => acc + (item.unit_price * item.quantity), 0);
 });
@@ -191,53 +203,3 @@ const init = async () => {
 
 init();
 </script>
-
-
-
-<style scoped>
-.form-container {
-    max-width: 600px;
-    margin: 0 auto;
-    padding: 20px;
-    border: 1px solid #ccc;
-    border-radius: 10px;
-    background-color: #f9f9f9;
-}
-
-.form-group {
-    margin-bottom: 15px;
-}
-
-.form-group label {
-    display: block;
-    margin-bottom: 5px;
-    font-weight: bold;
-}
-
-.form-group input,
-.form-group textarea {
-    width: 100%;
-    padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    box-sizing: border-box;
-}
-
-.form-group textarea {
-    resize: vertical;
-}
-
-button {
-    display: inline-block;
-    padding: 10px 20px;
-    color: #fff;
-    background-color: #007bff;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-}
-
-button:hover {
-    background-color: #0056b3;
-}
-</style>
