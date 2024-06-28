@@ -121,6 +121,16 @@ const sortBy = (field) => {
         sortDirection.value = 'desc';
     }
 }
+
+const clearFilters = () => {
+    statusFilter.value = 'all';
+    customerFilter.value = '';
+    searchCustomer.value = '';
+    startDate.value = '';
+    endDate.value = '';
+    sortField.value = '';
+    sortDirection.value = 'desc';
+}
 </script>
 
 
@@ -177,6 +187,12 @@ const sortBy = (field) => {
                                    :class="{'table--filter--link--active': sortField === 'date'}"
                                    class="table--filter--link">
                                     Sort by Date
+                                </p>
+                            </li>
+                            <li class="table--filter--clear">
+                                <p @click="clearFilters"
+                                   class="table--filter--link">
+                                    Clear
                                 </p>
                             </li>
                         </ul>

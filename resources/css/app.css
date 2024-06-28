@@ -646,9 +646,25 @@ button:hover {
     border-radius: 4px;
 }
 
-.main__modal.show {
-    opacity: 1;
-    visibility: visible;
+.table--filter--list {
+    display: flex;
+    flex-wrap: wrap;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.table--filter--clear {
+    margin-left: auto;
+}
+
+.table--filter--link {
+    cursor: pointer;
+    margin: 0 10px;
+}
+
+.table--filter--link--active {
+    font-weight: bold;
 }
 .notification {
     padding: 1em;
