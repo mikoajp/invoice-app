@@ -144,7 +144,6 @@ const getCustomers = async () => {
                 'Content-Type': 'application/json',
             }
         });
-        // Set customers if needed
     } catch (error) {
         console.error('Error fetching customers:', error);
     }

@@ -15,43 +15,30 @@ const setInvoices = (data) => {
 invoices.value = data;
 };
 
+const filterInvoices = (invoice) => {
+const filters = [
+(invoice) => statusFilter.value === 'all' || invoice.status === statusFilter.value,
+(invoice) => !customerFilter.value || invoice.customer_id === customerFilter.value,
+(invoice) => !searchCustomer.value || (invoice.customer && invoice.customer.firstname.toLowerCase().includes(searchCustomer.value.toLowerCase())),
+(invoice) => !startDate.value || new Date(invoice.date) >= new Date(startDate.value),
+(invoice) => !endDate.value || new Date(invoice.date) <= new Date(endDate.value)
+];
+
+return filters.every(filter => filter(invoice));
+};
+const sortInvoices = (a, b) => {
+    switch (sortField.value) {
+        case 'id':
+            return sortDirection.value === 'asc' ? a.id - b.id : b.id - a.id;
+        case 'date':
+            return sortDirection.value === 'asc' ? new Date(a.date) - new Date(b.date) : new Date(b.date) - new Date(a.date);
+        default:
+            return 0;
+    }
+};
+
 const filteredInvoices = computed(() => {
-let filtered = invoices.value;
-
-if (statusFilter.value !== 'all') {
-filtered = filtered.filter(invoice => invoice.status === statusFilter.value);
-}
-
-if (customerFilter.value) {
-filtered = filtered.filter(invoice => invoice.customer_id === customerFilter.value);
-}
-
-if (searchCustomer.value) {
-filtered = filtered.filter(invoice =>
-invoice.customer && invoice.customer.firstname.toLowerCase().includes(searchCustomer.value.toLowerCase())
-);
-}
-
-if (startDate.value) {
-filtered = filtered.filter(invoice => new Date(invoice.date) >= new Date(startDate.value));
-}
-
-if (endDate.value) {
-filtered = filtered.filter(invoice => new Date(invoice.date) <= new Date(endDate.value));
-}
-
-if (sortField.value) {
-filtered = filtered.sort((a, b) => {
-if (sortField.value === 'id') {
-return sortDirection.value === 'asc' ? a.id - b.id : b.id - a.id;
-} else if (sortField.value === 'date') {
-return sortDirection.value === 'asc' ? new Date(a.date) - new Date(b.date) : new Date(b.date) - new Date(a.date);
-}
-return 0;
-});
-}
-
-return filtered;
+return invoices.value.filter(filterInvoices).sort(sortInvoices);
 });
 
 const filterByStatus = (status) => {
@@ -62,8 +49,7 @@ const filterByCustomer = (customer) => {
 customerFilter.value = customer;
 };
 
-const filterByDate = () => {
-};
+const filterByDate = () => {};
 
 const sortBy = (field) => {
 if (sortField.value === field) {
