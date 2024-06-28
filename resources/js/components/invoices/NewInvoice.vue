@@ -104,17 +104,19 @@ const showModal = ref(false);
 let invoiceAr = ref({
     items: []
 });
+
 const openModal = () => {
     showModal.value = true;
-};
-const getAllProducts = async () => {
-    const response = await axios.get('/api/get_products');
-    allProducts.value = response.data;
-    listProduct.value = response.data;
 };
 
 const closeModal = () => {
     showModal.value = false;
+};
+
+const getAllProducts = async () => {
+    const response = await axios.get('/api/get_products');
+    allProducts.value = response.data;
+    listProduct.value = response.data;
 };
 
 const removeItem = (index) => {
@@ -129,7 +131,7 @@ const addCart = (item) => {
         unit_price: item.unit_price,
         quantity: 1
     }
-    invoiceAr.value.items.push(itemCart)
+    invoiceAr.value.items.push(itemCart);
 }
 
 const formatCurrency = (value) => {
@@ -193,6 +195,7 @@ const resetForm = () => {
     invoice.discount = 0;
     invoiceAr.value.items = [];
 };
+
 const showNotification = (message, type) => {
     notification.message = message;
     notification.type = type;
@@ -202,7 +205,7 @@ const showNotification = (message, type) => {
     }, 3000);
 };
 
-function submitForm() {
+const submitForm = () => {
     console.log("Submitting invoice:", invoice);
     axios.post('/api/invoices', invoice)
         .then(response => {
