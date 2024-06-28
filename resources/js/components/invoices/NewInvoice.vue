@@ -1,5 +1,8 @@
 <template>
     <div class="form-container">
+        <div v-if="notification.show" :class="['notification', notification.type]">
+            {{ notification.message }}
+        </div>
         <form @submit.prevent="submitForm">
             <div class="form-group">
                 <label>Number:</label>
@@ -127,7 +130,6 @@ const addCart = (item) => {
         quantity: 1
     }
     invoiceAr.value.items.push(itemCart)
-    closeModal();
 }
 
 const formatCurrency = (value) => {
@@ -175,14 +177,42 @@ watch(calculateTotal, (newVal) => {
     invoice.total = newVal;
 });
 
+const notification = reactive({
+    show: false,
+    message: '',
+    type: ''
+});
+
+const resetForm = () => {
+    invoice.number = '';
+    invoice.customer_id = '';
+    invoice.date = '';
+    invoice.due_date = '';
+    invoice.reference = '';
+    invoice.terms_and_conditions = '';
+    invoice.discount = 0;
+    invoiceAr.value.items = [];
+};
+const showNotification = (message, type) => {
+    notification.message = message;
+    notification.type = type;
+    notification.show = true;
+    setTimeout(() => {
+        notification.show = false;
+    }, 3000);
+};
+
 function submitForm() {
     console.log("Submitting invoice:", invoice);
     axios.post('/api/invoices', invoice)
         .then(response => {
             console.log('Invoice saved:', response.data);
+            showNotification('Invoice saved successfully!', 'success');
+            resetForm();
         })
         .catch(error => {
             console.error('There was an error!', error);
+            showNotification('Failed to save the invoice. Please try again.', 'error');
         });
 }
 

@@ -650,6 +650,20 @@ button:hover {
     opacity: 1;
     visibility: visible;
 }
+.notification {
+    padding: 1em;
+    margin-bottom: 1em;
+    border-radius: 5px;
+    color: white;
+    font-weight: bold;
+    text-align: center;
+}
+.notification.success {
+    background-color: #4caf50;
+}
+.notification.error {
+    background-color: #f44336;
+}
 
 .modal__content {
     background: white;
