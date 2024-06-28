@@ -7,7 +7,7 @@
             <div class="form-group">
                 <label>Number:</label>
                 <input type="text" v-model="invoice.number" required @input="validateInvoiceNumber" />
-                <p v-if="!isInvoiceNumberValid" class="error-message">Number must be in the format INV-</p>
+                <p v-if="!isInvoiceNumberValid" class="error-message">Number must be in the format INV-2xxx</p>
             </div>
             <div class="form-group">
                 <label>Customer:</label>
@@ -57,15 +57,16 @@
             </div>
             <div class="form-group">
                 <label>Sub Total:</label>
-                <input type="number" :value="calculateSubTotal" readonly />
+                <input type="number" :value="calculateSubTotal" />
             </div>
             <div class="form-group">
                 <label>Discount:</label>
-                <input type="number" v-model="invoice.discount" />
+                <input type="number" v-model="invoice.discount"/>
+                <button @click="openDiscountModal" type="button" class="btn add-line-button">Set Discount</button>
             </div>
             <div class="form-group">
                 <label>Total:</label>
-                <input type="number" :value="calculateTotal" readonly />
+                <input type="number" :value="calculateTotal"/>
             </div>
             <button type="submit" :disabled="!isInvoiceNumberValid || !isReferenceValid">Save</button>
         </form>
@@ -90,6 +91,20 @@
                 </div>
             </div>
         </div>
+
+        <div class="modal discount__modal" :class="{ show: showDiscountModal }">
+            <div class="modal__content">
+                <span @click="closeDiscountModal" class="modal__close btn__close--modal">×</span>
+                <h3 class="modal__title">Set Discount</h3>
+                <div class="modal__body">
+                    <input type="range" min="0" max="100" v-model="discountPercentage" />
+                    <p>{{ discountPercentage }}%</p>
+                </div>
+                <div class="modal__footer">
+                    <button @click="applyDiscount" class="btn btn-light btn__close--modal">Apply</button>
+                </div>
+            </div>
+        </div>
     </div>
 </template>
 
@@ -101,6 +116,9 @@ const listProduct = ref([]);
 const allCustomers = ref([]);
 const allProducts = ref([]);
 const showModal = ref(false);
+const showDiscountModal = ref(false);
+const discountPercentage = ref(0);
+
 let invoiceAr = ref({
     items: []
 });
@@ -113,6 +131,22 @@ const closeModal = () => {
     showModal.value = false;
 };
 
+const openDiscountModal = () => {
+    discountPercentage.value = 0;
+    showDiscountModal.value = true;
+};
+
+const closeDiscountModal = () => {
+    showDiscountModal.value = false;
+};
+
+const applyDiscount = () => {
+    const subTotal = calculateSubTotal.value;
+    const discountValue = subTotal * (discountPercentage.value / 100);
+    invoice.discount = discountValue;
+    closeDiscountModal();
+};
+
 const getAllProducts = async () => {
     const response = await axios.get('/api/get_products');
     allProducts.value = response.data;
@@ -121,7 +155,7 @@ const getAllProducts = async () => {
 
 const removeItem = (index) => {
     invoiceAr.value.items.splice(index, 1);
-}
+};
 
 const addCart = (item) => {
     const itemCart = {
@@ -130,13 +164,13 @@ const addCart = (item) => {
         description: item.description,
         unit_price: item.unit_price,
         quantity: 1
-    }
+    };
     invoiceAr.value.items.push(itemCart);
-}
+};
 
 const formatCurrency = (value) => {
     return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(value);
-}
+};
 
 const invoice = reactive({
     number: '',
@@ -154,7 +188,7 @@ const isInvoiceNumberValid = ref(true);
 const isReferenceValid = ref(true);
 
 const validateInvoiceNumber = () => {
-    const regex = /^INV-/;
+    const regex = /^INV-2/;
     isInvoiceNumberValid.value = regex.test(invoice.number);
 };
 
@@ -217,7 +251,7 @@ const submitForm = () => {
             console.error('There was an error!', error);
             showNotification('Failed to save the invoice. Please try again.', 'error');
         });
-}
+};
 
 const getAllCustomers = async () => {
     const response = await axios.get('/api/get_customers');
