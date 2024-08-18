@@ -18,7 +18,7 @@ class ProductController extends Controller
             'price' => 'required|numeric|min:0',
             'description' => 'nullable|string',
         ]);
-        
+
         $product = new Product();
         $product->name = $validatedData['name'];
         $product->price = $validatedData['price'];
