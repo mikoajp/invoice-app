@@ -23,7 +23,12 @@ class ProductController extends Controller
         $product->name = $validatedData['name'];
         $product->price = $validatedData['price'];
         $product->description = $request->input('description', '');
-        $product->save();
+
+        try {
+            $product->save();
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Product could not be saved'], 500);
+        }
 
         return response()->json($product, 201);
     }
